@@ -7,7 +7,8 @@ import { Dashboard } from "@/components/dashboard"
 import { TradePage } from "@/components/trade-page"
 import { Portfolio } from "@/components/portfolio"
 import { AIInsights } from "@/components/ai-insights"
-import { WalletConnect } from "@/components/wallet-connect"
+import WalletConnect from "@/components/wallet-connect"
+
 import { Settings } from "@/components/settings"
 import { QubicProvider } from "@/hooks/use-qubic-connector"
 
