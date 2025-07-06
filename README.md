@@ -25,18 +25,31 @@ This PoC demonstrates how to:
 
 /app
 ├─ layout.tsx # App shell with Theme & QubicProvider
+
 ├─ page.tsx # Root page, switches between sections
+
 ├─ /components
+
 │ ├─ dashboard.tsx # Reads contract state
+
 │ ├─ trade-page.tsx # Signs & sends trade TX
+
 │ ├─ wallet-connect.tsx # WalletConnect UI
+
 /hooks
+
 ├─ use-qubic-connector.ts # RPC connector context
+
 ├─ use-wallet-connect.ts # WalletConnect hook
+
 /lib
+
 ├─ contracts.ts # Contract addresses, function indexes, TX builders
+
 /contracts
+
 ├─ DEX.cpp # Your C++ smart contract
+
 ├─ deploy.sh # Example deploy script
 
 ## ⚙️ **Setup**
