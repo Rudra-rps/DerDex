@@ -1,19 +1,19 @@
 "use client";
 
 import { useState } from "react";
-import SignClient from "@walletconnect/sign-client"; // ✅ Correct import for v2
+import SignClient from "@walletconnect/sign-client";
 import QRCodeModal from "@walletconnect/qrcode-modal";
 
 export default function WalletConnect() {
   const [isConnected, setIsConnected] = useState(false);
-  const [connectionType, setConnectionType] = useState(""); // "snap" or "walletconnect"
-  const [snapId] = useState("npm:@qubic-lib/qubic-mm-snap"); // ✅ Your Snap ID for MetaMask
+  const [connectionType, setConnectionType] = useState<"snap" | "walletconnect" | "">("");
+  const [snapId] = useState("npm:@qubic-lib/qubic-mm-snap");
   const [error, setError] = useState("");
-  const [connector, setConnector] = useState<any>(null);
+  const [signClient, setSignClient] = useState<SignClient | null>(null);
 
   // ✅ MetaMask Snap connect — using wallet_requestSnaps
   const connectSnap = async () => {
-    if (!(window as any).ethereum) {
+    if (typeof window === "undefined" || !(window as any).ethereum) {
       alert("MetaMask is not installed.");
       return;
     }
@@ -40,8 +40,8 @@ export default function WalletConnect() {
   // ✅ WalletConnect Mobile QR using SignClient v2
   const connectWalletConnect = async () => {
     try {
-      const newConnector = await SignClient.init({
-        projectId: "9eb33018ac85ff782ebfc1c9c2e06dff", // ✅ YOUR PROJECT ID
+      const client = await SignClient.init({
+        projectId: "9eb33018ac85ff782ebfc1c9c2e06dff", // ✅ Your real WC project ID
         relayUrl: "wss://relay.walletconnect.org",
         metadata: {
           name: "Qubic DEX",
@@ -51,21 +51,22 @@ export default function WalletConnect() {
         },
       });
 
-      newConnector.on("session_proposal", (proposal) => {
+      client.on("session_proposal", (proposal) => {
         console.log("🔗 Session proposal:", proposal);
       });
 
-      newConnector.on("session_created", (session) => {
+      client.on("session_created", (session) => {
         console.log("✅ WalletConnect session created:", session);
       });
 
-      newConnector.on("session_delete", () => {
-        console.log("❌ Session disconnected.");
+      client.on("session_delete", () => {
+        console.log("❌ WalletConnect session disconnected.");
         setIsConnected(false);
-        setConnector(null);
+        setSignClient(null);
+        setConnectionType("");
       });
 
-      const session = await newConnector.connect({
+      const session = await client.connect({
         requiredNamespaces: {
           qubic: {
             chains: ["qubic:mainnet"],
@@ -84,19 +85,28 @@ export default function WalletConnect() {
 
       console.log("🔗 Session:", session);
 
-      if (!newConnector.session) {
-        QRCodeModal.open(newConnector.uri, () => {
+      if (!client.session) {
+        QRCodeModal.open(client.uri, () => {
           console.log("QR Modal closed");
         });
       }
 
       setConnectionType("walletconnect");
       setIsConnected(true);
-      setConnector(newConnector);
+      setSignClient(client);
       setError("");
     } catch (err: any) {
       console.error("❌ WalletConnect error:", err);
       setError(err.message || "Unknown error");
+    }
+  };
+
+  const disconnectWalletConnect = async () => {
+    if (signClient) {
+      await signClient.disconnect();
+      setSignClient(null);
+      setIsConnected(false);
+      setConnectionType("");
     }
   };
 
@@ -113,10 +123,12 @@ export default function WalletConnect() {
         </button>
 
         <button
-          onClick={connectWalletConnect}
+          onClick={isConnected && connectionType === "walletconnect" ? disconnectWalletConnect : connectWalletConnect}
           className="w-full px-6 py-3 rounded-lg bg-green-600 text-white hover:bg-green-700"
         >
-          📱 Connect Mobile Wallet (QR)
+          {isConnected && connectionType === "walletconnect"
+            ? "🔌 Disconnect WalletConnect"
+            : "📱 Connect Mobile Wallet (QR)"}
         </button>
       </div>
 
@@ -127,9 +139,7 @@ export default function WalletConnect() {
       )}
 
       {error && (
-        <p className="mt-4 text-red-600 font-medium">
-          ⚠️ Error: {error}
-        </p>
+        <p className="mt-4 text-red-600 font-medium">⚠️ Error: {error}</p>
       )}
     </div>
   );
