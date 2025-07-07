@@ -2,6 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
 import { TrendingUp, TrendingDown, DollarSign, AlertTriangle, Activity } from "lucide-react"
+import { DexDashboard } from "@/components/dex-dashboard"
 
 const marketData = [
   { symbol: "BTC/USD", price: 43250.5, change: 2.45, changePercent: 5.67, volume: "2.4B" },
@@ -77,6 +78,9 @@ export function Dashboard() {
           </CardContent>
         </Card>
       </div>
+
+       {/* DEX Dashboard Components */}
+      <DexDashboard />
 
       {/* Market Overview */}
       <Card className="bg-card/50 backdrop-blur-sm border-border">
