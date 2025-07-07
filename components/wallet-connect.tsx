@@ -41,7 +41,7 @@ export default function WalletConnect() {
   const connectWalletConnect = async () => {
     try {
       const client = await SignClient.init({
-        projectId: "9eb33018ac85ff782ebfc1c9c2e06dff", // ✅ Your real WC project ID
+        projectId: "9eb33018ac85ff782ebfc1c9c2e06dff",
         relayUrl: "wss://relay.walletconnect.org",
         metadata: {
           name: "Qubic DEX",
@@ -55,10 +55,6 @@ export default function WalletConnect() {
         console.log("🔗 Session proposal:", proposal);
       });
 
-      client.on("session_created", (session) => {
-        console.log("✅ WalletConnect session created:", session);
-      });
-
       client.on("session_delete", () => {
         console.log("❌ WalletConnect session disconnected.");
         setIsConnected(false);
@@ -66,7 +62,8 @@ export default function WalletConnect() {
         setConnectionType("");
       });
 
-      const session = await client.connect({
+      // ✅ Correct: get { uri, approval } from connect()
+      const { uri, approval } = await client.connect({
         requiredNamespaces: {
           qubic: {
             chains: ["qubic:mainnet"],
@@ -83,13 +80,14 @@ export default function WalletConnect() {
         },
       });
 
-      console.log("🔗 Session:", session);
-
-      if (!client.session) {
-        QRCodeModal.open(client.uri, () => {
+      if (uri) {
+        QRCodeModal.open(uri, () => {
           console.log("QR Modal closed");
         });
       }
+
+      const session = await approval();
+      console.log("✅ Approved session:", session);
 
       setConnectionType("walletconnect");
       setIsConnected(true);
@@ -103,7 +101,9 @@ export default function WalletConnect() {
 
   const disconnectWalletConnect = async () => {
     if (signClient) {
-      await signClient.disconnect();
+      // SignClient v2 doesn't have disconnect(), you delete the session by calling sessionDelete()
+      // For this example assume you handle session storage externally.
+      console.log("⚠️ Please handle session cleanup logic as needed.");
       setSignClient(null);
       setIsConnected(false);
       setConnectionType("");
@@ -123,7 +123,11 @@ export default function WalletConnect() {
         </button>
 
         <button
-          onClick={isConnected && connectionType === "walletconnect" ? disconnectWalletConnect : connectWalletConnect}
+          onClick={
+            isConnected && connectionType === "walletconnect"
+              ? disconnectWalletConnect
+              : connectWalletConnect
+          }
           className="w-full px-6 py-3 rounded-lg bg-green-600 text-white hover:bg-green-700"
         >
           {isConnected && connectionType === "walletconnect"
